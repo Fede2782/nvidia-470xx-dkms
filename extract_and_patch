@@ -74,6 +74,10 @@ use-kbuild-flags.patch
 conftest-prefer-arch-headers.patch
 nvidia-470xx-MODULE_DESCRIPTION.patch
 enable-drm-modeset-by-default.patch
+nvidia-470xx-VMA_LOCK_OFFSET.patch
+nvidia-470xx-fix-linux-7.0.patch
+gcc-14.patch
+nvidia-UBSAN.patch
 "
 
 for patch in $PATCHES; do

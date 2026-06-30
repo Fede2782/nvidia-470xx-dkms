@@ -1,0 +1,31 @@
+From d1fd3bcac1ef7da7cd9624f87d8d6ab2768880f1 Mon Sep 17 00:00:00 2001
+From: =?UTF-8?q?Joan=20Bruguera=20Mic=C3=B3?= <joanbrugueram@gmail.com>
+Date: Sun, 15 Feb 2026 11:31:28 +0000
+Subject: [PATCH] Tentative fix for NVIDIA 470.256.02 driver for Linux 7.0-rc1
+
+---
+ common/inc/nv-linux.h                |  3 +++
+ nvidia-drm/nvidia-dma-fence-helper.h |  7 ++++---
+ nvidia/nv.c                          | 23 +++++++++++++++--------
+ 3 files changed, 22 insertions(+), 11 deletions(-)
+
+diff --git a/nvidia-drm/nvidia-dma-fence-helper.h b/nvidia-drm/nvidia-dma-fence-helper.h
+index a09ab76..6221bf2 100644
+--- a/nvidia-drm/nvidia-dma-fence-helper.h
++++ b/nvidia-drm/nvidia-dma-fence-helper.h
+@@ -89,11 +89,12 @@ nv_dma_fence_default_wait(nv_dma_fence_t *fence,
+ #endif
+ }
+ 
+-static inline int nv_dma_fence_signal(nv_dma_fence_t *fence) {
++// Rel. commit "dma-buf/dma-fence: Remove return code of signaling-functions" (Philipp Stanner, 1 Dec 2025)
++static inline void nv_dma_fence_signal(nv_dma_fence_t *fence) {
+ #if defined(NV_LINUX_FENCE_H_PRESENT)
+-    return fence_signal(fence);
++    fence_signal(fence);
+ #else
+-    return dma_fence_signal(fence);
++    dma_fence_signal(fence);
+ #endif
+ }
+ 

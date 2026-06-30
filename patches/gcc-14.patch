@@ -1,0 +1,12 @@
+diff -Naur a/common/inc/nv-linux.h b/kernel/common/inc/nv-linux.h
+--- a/common/inc/nv-linux.h
++++ b/common/inc/nv-linux.h
+@@ -236,7 +236,7 @@
+ #error "NV_EFI_ENABLED_ARGUMENT_COUNT value unrecognized!"
+ #endif
+ #elif (defined(NV_EFI_ENABLED_PRESENT) || defined(efi_enabled))
+-#define NV_EFI_ENABLED() efi_enabled
++#define NV_EFI_ENABLED() ((int)efi_enabled)
+ #else
+ #define NV_EFI_ENABLED() 0
+ #endif
