@@ -1,12 +1,23 @@
-diff --git a/kernel-open/common/inc/nv-mm.h b/kernel-open/common/inc/nv-mm.h
-index 919dacde86..70e284eacc 100644
+From cc0c84bebd9a19c03468626c855ae81a7ecc1cef Mon Sep 17 00:00:00 2001
+From: Fede2782 <78815152+Fede2782@users.noreply.github.com>
+Date: Tue, 30 Jun 2026 20:32:38 +0000
+Subject: [PATCH] nvidia 470xx VMA_LOCK_OFFSET
+
+---
+ common/inc/nv-mm.h           | 10 ++++++++++
+ conftest.sh                  | 20 ++++++++++++++++++++
+ nvidia-drm/nvidia-drm.Kbuild |  1 +
+ nvidia/nv-mmap.c             | 16 +++++++++++-----
+ 4 files changed, 42 insertions(+), 5 deletions(-)
+
+diff --git a/common/inc/nv-mm.h b/common/inc/nv-mm.h
+index d622a43..d7da9d5 100644
 --- a/common/inc/nv-mm.h
 +++ b/common/inc/nv-mm.h
-@@ -276,6 +276,16 @@ static inline void nv_vma_flags_clear_wo
-     ACCESS_PRIVATE(vma, __vm_flags) &= ~flags;
- #endif
+@@ -278,6 +278,16 @@ static inline void nv_vma_flags_clear_word(struct vm_area_struct *vma, unsigned
  }
-+
+ #endif // !NV_CAN_CALL_VMA_START_WRITE
+ 
 +static inline int nv_is_vma_write_locked(struct vm_area_struct *vma, unsigned int *mm_lock_seq)
 +{
 +#if defined(NV_IS_VMA_WRITE_LOCKED_HAS_MM_LOCK_SEQ_ARG)
@@ -16,24 +27,65 @@ index 919dacde86..70e284eacc 100644
 +    return __is_vma_write_locked(vma);
 +#endif
 +}
- #endif // !NV_CAN_CALL_VMA_START_WRITE
- 
++
  #include <linux/version.h>
-diff --git a/kernel-open/nvidia/nv-mmap.c b/kernel-open/nvidia/nv-mmap.c
-index c518847c08..8a90f56e98 100644
+ #if LINUX_VERSION_CODE < KERNEL_VERSION(3, 0, 0)
+ typedef unsigned long vm_flags_t;
+diff --git a/conftest.sh b/conftest.sh
+index 8e7aa07..2980a2b 100755
+--- a/conftest.sh
++++ b/conftest.sh
+@@ -5236,6 +5236,26 @@ compile_test() {
+             compile_check_conftest "$CODE" "NV_DRM_CONNECTOR_HELPER_FUNCS_MODE_VALID_HAS_CONST_MODE_ARG" "" "types"
+         ;;
+ 
++        is_vma_write_locked_has_mm_lock_seq_arg)
++            #
++            # Determine if __is_vma_write_locked() takes only a single
++            # 'struct vm_area_struct *' argument.
++            #
++            # Commit 22f7639f2f03 ("mm/vma: improve and document
++            # __is_vma_write_locked()") removed the 'unsigned int *mm_lock_seq'
++            # parameter in v7.0-rc1.
++            #
++            CODE="
++            #include <linux/mm.h>
++            #include <linux/mmap_lock.h>
++            int conftest_is_vma_write_locked_has_mm_lock_seq_arg(struct vm_area_struct *vma) {
++                unsigned int mm_lock_seq;
++                return __is_vma_write_locked(vma, &mm_lock_seq);
++            }"
++
++            compile_check_conftest "$CODE" "NV_IS_VMA_WRITE_LOCKED_HAS_MM_LOCK_SEQ_ARG" "" "types"
++        ;;
++
+         # When adding a new conftest entry, please use the correct format for
+         # specifying the relevant upstream Linux kernel commit.  Please
+         # avoid specifying -rc kernels, and only use SHAs that actually exist
+diff --git a/nvidia-drm/nvidia-drm.Kbuild b/nvidia-drm/nvidia-drm.Kbuild
+index 1ae1b5d..8ea7123 100644
+--- a/nvidia-drm/nvidia-drm.Kbuild
++++ b/nvidia-drm/nvidia-drm.Kbuild
+@@ -128,3 +128,4 @@ NV_CONFTEST_TYPE_COMPILE_TESTS += drm_driver_has_date
+ NV_CONFTEST_TYPE_COMPILE_TESTS += file_operations_fop_unsigned_offset_present
+ NV_CONFTEST_TYPE_COMPILE_TESTS += drm_connector_helper_funcs_mode_valid_has_const_mode_arg
+ NV_CONFTEST_TYPE_COMPILE_TESTS += drm_fb_create_takes_format_info
++NV_CONFTEST_TYPE_COMPILE_TESTS += is_vma_write_locked_has_mm_lock_seq_arg
+diff --git a/nvidia/nv-mmap.c b/nvidia/nv-mmap.c
+index 1611d99..3727dd3 100644
 --- a/nvidia/nv-mmap.c
 +++ b/nvidia/nv-mmap.c
-@@ -957,15 +957,22 @@ void NV_API_CALL nv_set_safe_to_mmap_locked(
+@@ -799,16 +799,22 @@ void NV_API_CALL nv_set_safe_to_mmap_locked(
+     nvl->safe_to_mmap = safe_to_mmap;
  }
  
- #if !NV_CAN_CALL_VMA_START_WRITE
-+
 +#if defined(VM_REFCNT_EXCLUDE_READERS_FLAG)
 +#define NV_VMA_LOCK_OFFSET VM_REFCNT_EXCLUDE_READERS_FLAG
 +#else
 +#define NV_VMA_LOCK_OFFSET VMA_LOCK_OFFSET
 +#endif
 +
+ #if !NV_CAN_CALL_VMA_START_WRITE
  static NvBool nv_vma_enter_locked(struct vm_area_struct *vma, NvBool detaching)
  {
 -    NvU32 tgt_refcnt = VMA_LOCK_OFFSET;
@@ -48,7 +100,7 @@ index c518847c08..8a90f56e98 100644
      {
          return NV_FALSE;
      }
-@@ -995,7 +1002,7 @@ static NvBool nv_vma_enter_locked(struct vm_area_struct *vma, NvBool detaching)
+@@ -838,7 +844,7 @@ static NvBool nv_vma_enter_locked(struct vm_area_struct *vma, NvBool detaching)
      if (interrupted)
      {
          // Clean up on error: release refcount and dep_map
@@ -57,7 +109,7 @@ index c518847c08..8a90f56e98 100644
          rwsem_release(&vma->vmlock_dep_map, _RET_IP_);
          return NV_FALSE;
      }
-@@ -1011,7 +1018,7 @@ void nv_vma_start_write(struct vm_area_struct *vma)
+@@ -854,7 +860,7 @@ void nv_vma_start_write(struct vm_area_struct *vma)
  {
      NvU32 mm_lock_seq;
      NvBool locked;
@@ -66,7 +118,7 @@ index c518847c08..8a90f56e98 100644
          return;
  
      locked = nv_vma_enter_locked(vma, NV_FALSE);
-@@ -1020,7 +1027,7 @@ void nv_vma_start_write(struct vm_area_struct *vma)
+@@ -863,7 +869,7 @@ void nv_vma_start_write(struct vm_area_struct *vma)
      if (locked)
      {
          NvBool detached;
@@ -75,3 +127,6 @@ index c518847c08..8a90f56e98 100644
          rwsem_release(&vma->vmlock_dep_map, _RET_IP_);
          WARN_ON_ONCE(detached);
      }
+-- 
+2.43.0
+
