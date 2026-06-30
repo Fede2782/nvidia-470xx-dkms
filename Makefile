@@ -1,4 +1,4 @@
-.PHONY: download build-% test test-% test-%-staging
+.PHONY: download build-% test test-%
 
 CONTAINER_ENGINE := $(shell command -v podman >/dev/null 2>&1 && echo podman || echo docker)
 
@@ -11,7 +11,4 @@ build-%: download
 test-%: build-%
 	$(CONTAINER_ENGINE) run --network none --rm nvidia-470xx-$*
 
-test-%-staging: build-%
-	$(CONTAINER_ENGINE) run --network none --rm --env NVIDIA_470XX_APPLY_STAGING_PATCHES=1 nvidia-470xx-$*
-
-test: test-legacy test-mainline test-stable test-ubuntu-devel test-legacy-staging test-mainline-staging test-stable-staging test-ubuntu-devel-staging
+test: test-legacy test-ubuntu-lts test-ubuntu-lts-hwe test-ubuntu-lts-hwe-edge

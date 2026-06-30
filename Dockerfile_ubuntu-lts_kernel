@@ -1,5 +1,5 @@
-# Test the build against a legacy kernel
-FROM docker.io/library/debian:stable
+# Test the build against the ubuntu:devel kernel config
+FROM docker.io/library/ubuntu:noble
 
 RUN export DEBIAN_FRONTEND=noninteractive \
     && apt-get update \
@@ -17,7 +17,7 @@ COPY . .
 RUN printf '%s\n' \
     '#!/bin/sh' \
     'KERNEL_BASE_DIR=$(echo /lib/modules/*)' \
-    'SYSSRC=$KERNEL_BASE_DIR/source SYSOUT=$KERNEL_BASE_DIR/build exec "$@"' \
+    'SYSSRC=$KERNEL_BASE_DIR/build exec "$@"' \
   > /entrypoint.sh && chmod +x /entrypoint.sh
 ENTRYPOINT ["/entrypoint.sh"]
 

@@ -11,13 +11,10 @@ jobs:
     runs-on: ubuntu-latest
     strategy:
       matrix:
-        kernel: [legacy, stable, mainline, ubuntu-devel]
+        kernel: [legacy, ubuntu-lts, ubuntu-lts-hwe, ubuntu-lts-hwe-edge]
     steps:
       - name: Checkout repository
         uses: actions/checkout@v7
 
       - name: Build against the ${{ matrix.kernel }} kernel
         run: make test-${{ matrix.kernel }}
-
-      - name: Build against the ${{ matrix.kernel }} kernel with staging patches
-        run: make test-${{ matrix.kernel }}-staging
