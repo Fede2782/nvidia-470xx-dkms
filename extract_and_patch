@@ -10,28 +10,72 @@ sh NVIDIA-Linux-x86_64-470.256.02.run --extract-only
 
 SCRIPTPATH="$( cd -- "$(dirname "$0")" >/dev/null 2>&1 ; pwd -P )"
 apply_patch() {
-    patch -Np1 -i "$SCRIPTPATH/patches/$1"
+if patch -p1 --fuzz=0 --dry-run < "$SCRIPTPATH/patches/$1"; then
+    echo "Applying $1"
+    patch -p1 --fuzz=0 --no-backup-if-mismatch < "$SCRIPTPATH/patches/$1"
+else
+    echo "Failure applying $1"
+    return 1
+fi
 }
 
 cd NVIDIA-Linux-x86_64-470.256.02/kernel
-apply_patch 0001-Fix-conftest-to-ignore-implicit-function-declaration.patch
-apply_patch 0002-Fix-conftest-to-use-a-short-wchar_t.patch
-apply_patch 0003-Fix-conftest-to-use-nv_drm_gem_vmap-which-has-the-se.patch
-apply_patch kernel-6.10.patch
-apply_patch kernel-6.12.patch
-apply_patch nvidia-470xx-fix-gcc-15.patch
-apply_patch nvidia-470xx-fix-linux-6.13.patch
-apply_patch nvidia-470xx-fix-linux-6.14.patch
-apply_patch nvidia-470xx-fix-linux-6.15.patch
-apply_patch nvidia-470xx-fix-linux-6.17.patch
-apply_patch nvidia-470xx-fix-linux-6.19-part1.patch
-apply_patch nvidia-470xx-fix-linux-6.19-part2.patch
-apply_patch nvidia-470xx-fix-linux-7.0.patch
-apply_patch nvidia-470xx-fix-linux-7.2-part1.patch
-apply_patch nvidia-470xx-fix-linux-7.2-part2.patch
-apply_patch nvidia-470xx-fix-linux-7.2-part3.patch
-if [ -n "${NVIDIA_470XX_APPLY_STAGING_PATCHES:-}" ]; then
-    true
-fi
-apply_patch disable-objtool-override.patch
-apply_patch enable-drm-modeset-by-default.patch
+
+PATCHES="
+cc_version_check-gcc5.patch
+bashisms.patch
+0001-some-power-management-features-were-not-yet-in-Linux.patch
+0023-backport-vm_area_struct_has_const_vm_flags-changes-f.patch
+0033-refuse-to-load-legacy-module-if-IBT-is-enabled.patch
+0034-fix-typos.patch
+0037-import-pfn_valid-w-o-GPL-rcu_read_lock-unlock-from-v.patch
+0042-Log-an-error-message-when-nv_mem_client_init-fails-d.patch
+0043-backport-follow_pfn-changes-from-550.90.07.patch
+0045-let-the-virt_addr_valid-macro-use-nv_pfn_valid-on-pp.patch
+0046-backport-nv_get_kern_phys_address-changes-from-555.4.patch
+0047-backport-drm_output_poll_changed-changes-from-535.21.patch
+0048-backport-cmd_symlink-changes-from-550.142.patch
+0049-backport-uvm-warning-fixes-from-510.39.01.patch
+0049-backport-warning-fixes-from-525.53.patch
+0050-backport-uvm-warning-fixes-from-535.146.02.patch
+0051-backport-warning-fixes-from-535.216.01.patch
+0052-backport-uvm-warning-fixes-from-560.28.03.patch
+0053-fix-more-warnings.patch
+0054-backport-warning-fixes-from-575.51.02.patch
+0054-fix-more-uvm-warnings.patch
+0055-backport-file_operations_fop_unsigned_offset_present.patch
+0056-backport-LD_SCRIPT-changes-from-535.230.02.patch
+0057-backport-uvm-fixes-from-535.230.02.patch
+0058-backport-warning-fixes-from-565.57.01.patch
+0059-backport-uvm-warning-fixes-from-550.90.07.patch
+0060-backport-build_cflags-changes-from-525.85.05.patch
+0061-backport-drm_gem_object_vmap_has_map_arg-changes-fro.patch
+0063-backport-conftest.sh-comment-changes-from-515.48.07.patch
+0063-backport-conftest.sh-comment-changes-from-525.53.patch
+0063-backport-conftest.sh-comment-changes-from-545.23.06.patch
+0064-backport-drm_driver_has_date-from-570.124.04.patch
+0065-backport-ccflags-y-changes-from-570.153.02.patch
+0066-backport-nv_timer_delete_sync-changes-from-570.153.0.patch
+0067-backport-drm_connector_helper_funcs_mode_valid_has_c.patch
+0071-backport-nv_vma_start_write-changes-from-570.169.patch
+0074-backport-drm_fb_create_takes_format_info-changes-fro.patch
+0075-backport-drm_print.h-changes-from-570.211.01.patch
+0076-backport-nv_in_hardirq-changes-from-580.119.02.patch
+0077-backport-vma_flags_set_word-changes-from-580.126.09.patch
+0078-backport-vma_flags_set_word-changes-from-580.126.09-.patch
+0079-backport-dma_map_ops_has_map_phys-changes-from-580.1.patch
+0080-backport-for_each_-_plane_in_state-changes-from-580..patch
+0081-support-fallback-for-for_each_-_plane_in_state.patch
+0082-backport-for_each_-_crtc_in_state-changes-from-580.1.patch
+0083-support-fallback-for-for_each_-_crtc_in_state.patch
+conftest-verbose.patch
+use-kbuild-compiler.patch
+use-kbuild-flags.patch
+conftest-prefer-arch-headers.patch
+nvidia-470xx-MODULE_DESCRIPTION.patch
+enable-drm-modeset-by-default.patch
+"
+
+for patch in $PATCHES; do
+    apply_patch "$patch"
+done

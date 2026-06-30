@@ -1,0 +1,53 @@
+From c9a877ea48935bb40597cc2e7d88b0035a27e6f2 Mon Sep 17 00:00:00 2001
+From: =?UTF-8?q?Joan=20Bruguera=20Mic=C3=B3?= <joanbrugueram@gmail.com>
+Date: Sat, 12 Apr 2025 22:46:59 +0000
+Subject: [PATCH] Tentative fix for NVIDIA 470.256.02 driver for Linux 6.15-rc1
+
+diff --git a/nvidia-drm/nvidia-drm-linux.c b/nvidia-drm/nvidia-drm-linux.c
+index 94e463e..2319640 100644
+--- a/nvidia-drm/nvidia-drm-linux.c
++++ b/nvidia-drm/nvidia-drm-linux.c
+@@ -182,6 +182,7 @@ static void __exit nv_linux_drm_exit(void)
+ module_init(nv_linux_drm_init);
+ module_exit(nv_linux_drm_exit);
+ 
++MODULE_DESCRIPTION("NVIDIA GPU DRM kernel module");
+ #if defined(MODULE_LICENSE)
+ 
+ 
+diff --git a/nvidia-modeset/nvidia-modeset-linux.c b/nvidia-modeset/nvidia-modeset-linux.c
+index de0c748..f6810d2 100644
+--- a/nvidia-modeset/nvidia-modeset-linux.c
++++ b/nvidia-modeset/nvidia-modeset-linux.c
+@@ -1778,6 +1778,7 @@ restart:
+ module_init(nvkms_init);
+ module_exit(nvkms_exit);
+ 
++MODULE_DESCRIPTION("NVIDIA GPU modeset kernel module");
+ #if defined(MODULE_LICENSE)
+ 
+ 
+diff --git a/nvidia-uvm/uvm.c b/nvidia-uvm/uvm.c
+index 73ceb70..321a411 100644
+--- a/nvidia-uvm/uvm.c
++++ b/nvidia-uvm/uvm.c
+@@ -1129,6 +1138,7 @@ static void __exit uvm_exit_entry(void)
+ module_init(uvm_init_entry);
+ module_exit(uvm_exit_entry);
+ 
++MODULE_DESCRIPTION("NVIDIA GPU UVM kernel module");
+ MODULE_LICENSE("Dual MIT/GPL");
+ MODULE_INFO(supported, "external");
+ 
+diff --git a/nvidia/nv-frontend.c b/nvidia/nv-frontend.c
+index 4d6d8af..ad82d6b 100644
+--- a/nvidia/nv-frontend.c
++++ b/nvidia/nv-frontend.c
+@@ -13,6 +13,7 @@
+ #include "nv-reg.h"
+ #include "nv-frontend.h"
+ 
++MODULE_DESCRIPTION("NVIDIA GPU frontend kernel module");
+ #if defined(MODULE_LICENSE)
+ 
+ 
