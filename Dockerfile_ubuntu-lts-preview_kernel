@@ -1,12 +1,12 @@
-# Test the build against the ubuntu:noble kernel config
-FROM docker.io/library/ubuntu:noble
+# Test the build against the ubuntu:resolute kernel config
+FROM docker.io/library/ubuntu:resolute
 
 RUN export DEBIAN_FRONTEND=noninteractive \
     && apt-get update \
     && apt-get install -y --no-install-recommends \
         wget ca-certificates \
         build-essential \
-        linux-headers-generic-hwe-24.04-edge \
+        linux-headers-generic \
     && rm -rf /var/lib/apt/lists/*
 
 WORKDIR /app

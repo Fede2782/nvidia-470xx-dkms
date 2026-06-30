@@ -11,4 +11,4 @@ build-%: download
 test-%: build-%
 	$(CONTAINER_ENGINE) run --network none --rm nvidia-470xx-$*
 
-test: test-legacy test-ubuntu-lts test-ubuntu-lts-hwe test-ubuntu-lts-hwe-edge
+test: test-legacy test-ubuntu-lts test-ubuntu-lts-hwe test-ubuntu-lts-hwe-edge test-ubuntu-lts-preview

@@ -1,4 +1,4 @@
-# Test the build against the ubuntu:lts kernel config
+# Test the build against the ubuntu:noble kernel config
 FROM docker.io/library/ubuntu:noble
 
 RUN export DEBIAN_FRONTEND=noninteractive \

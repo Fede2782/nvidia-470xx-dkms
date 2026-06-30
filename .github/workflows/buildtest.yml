@@ -11,7 +11,7 @@ jobs:
     runs-on: ubuntu-latest
     strategy:
       matrix:
-        kernel: [legacy, ubuntu-lts, ubuntu-lts-hwe, ubuntu-lts-hwe-edge]
+        kernel: [legacy, ubuntu-lts, ubuntu-lts-hwe, ubuntu-lts-hwe-edge, ubuntu-lts-preview]
     steps:
       - name: Checkout repository
         uses: actions/checkout@v7
