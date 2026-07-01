@@ -1,6 +1,8 @@
 name: Build test NVIDIA driver patches
 
 on:
+  schedule:
+     - cron: "0 0 1,8,15,22,28 * *"
   push:
     branches: [ master ]
   pull_request:
