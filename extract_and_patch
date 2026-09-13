@@ -78,6 +78,7 @@ nvidia-470xx-VMA_LOCK_OFFSET.patch
 nvidia-470xx-fix-linux-7.0.patch
 gcc-14.patch
 nvidia-UBSAN.patch
+nvidia-470xx-fix-linux-7.2.v5.patch
 "
 
 for patch in $PATCHES; do
